@@ -1,0 +1,16 @@
+Graphical utility for interfacing with database
+
+use SQLite for local DB
+
+allow insertion of items of varying types
+
+want to enable the ability to create categories, such as Tool and Candle
+
+don't want to include categories by default
+
+Should be able to highlight text in descriptions and create links, like in Obsidian MD
+
+
+goal is to say "get me all memories that can come from books and have Rose" and have a list of interactive results,
+  sorted by how much Rose they have and whether they require a language to read
+
