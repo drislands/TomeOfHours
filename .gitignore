@@ -32,3 +32,6 @@ bin/
 target/
 lib/
 .idea/
+
+*.swp
+
