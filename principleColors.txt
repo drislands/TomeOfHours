@@ -1,0 +1,14 @@
+Name,Color
+Forge,FF8E3F
+Grail,FF614F
+Knock,B54EFC
+Sky,2C69E1
+Edge,D6DE4A
+Scale,CB9F4D
+Rose,EF63FF
+Heart,FF7F8C
+Lantern,FFE300
+Moon,CBBCD6
+Moth,F1E9C2
+Nectar,2CD391
+Winter,BDEFFF
