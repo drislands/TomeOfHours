@@ -1,6 +1,7 @@
 @Grab('org.xerial:sqlite-jdbc:3.50.3.0')
 @GrabConfig(systemClassLoader=true)
 import groovy.sql.Sql
+import groovy.lang.Tuple3
 import groovy.sql.GroovyRowResult
 import groovy.transform.Canonical
 import javax.swing.JTextArea
@@ -16,7 +17,9 @@ class Testing {
     if(args.size() > 0) {
       args.each { arg ->
         String name,description
-        Aspect a
+        String card,aspect
+        def primary = false
+        def secondary = false
 
         switch(arg) {
           case "make-aspect":
@@ -25,8 +28,53 @@ class Testing {
               Aspect.getAspect(name)
               println "Aspect '$name' already exists."
             } catch(ignored) {
-              a = Aspect.makeAspect(name,description)
+              def a = Aspect.makeAspect(name,description)
               println a
+            }
+            break
+          case "make-card":
+            (name,description) = splitPaste(getInput())
+            try {
+              Card.getCard(name)
+              println "Card '$card' already exists."
+            } catch(ignored) {
+              def c = Card.makeCard(name,description)
+              println c
+            }
+            break
+          case "card-primary":
+            primary = true
+          case "card-secondary":
+            secondary = true
+          case "card-aspect":
+            (card,aspect) = splitPaste(getInput())
+            try {
+              def c = Card.getCard(card)
+              def a = Aspect.getAspect(aspect)
+              if(primary) c.addPrimaryAspect(a)
+              else if(secondary) c.addSecondaryAspect(a)
+              else c.addAspect(a)
+            } catch(ignored) {
+              println "Card or Aspect don't exist!"
+            }
+            break
+          case "get-card":
+            card = getInput()
+            try {
+              def c = Card.getCard(card)
+              def aspects = c.aspects
+              println c
+              aspects.each { a ->
+                def data = ''
+                if(a.v2 != 'OTHER') {
+                  data = ": $a.v2"
+                } else if(a.v3 > 1) {
+                  data = " ($a.v3)"
+                }
+                println " > $a.v1 $data"
+              }
+            } catch(ignored) {
+              println "Card '$card' doesn't exist!"
             }
             break
           default:
@@ -203,6 +251,71 @@ class Testing {
       def a = Aspect.getAspect(name)
       def row = conn.firstRow('SELECT * FROM Principles WHERE AspectID=?',a.ID)
       return new Principle(row)
+    }
+  }
+  @Canonical
+  static class Card {
+    int ID
+    String name
+    String description
+    String notes
+
+    Card(){}
+    Card(GroovyRowResult row) {
+      ID = row.CardID
+      name = row.Name
+      description = row.Description
+      notes = row.Notes
+    }
+
+    void addAspect(Aspect aspect,int count) {
+      addAspectInternal(aspect,count,'OTHER')
+    }
+    void addAspect(Aspect aspect) {
+      addAspectInternal(aspect,1,'OTHER')
+    }
+    void addPrimaryAspect(Aspect aspect) {
+      addAspectInternal(aspect,1,'PRIMARY')
+    }
+    void addSecondaryAspect(Aspect aspect) {
+      addAspectInternal(aspect,1,'SECONDARY')
+    }
+    private void addAspectInternal(Aspect aspect,int count,String type) {
+      conn.execute('''
+        INSERT INTO Card_Aspects
+          (CardID,AspectID,AspectCount,AspectType)
+        VALUES
+          (?,?,?,?)''',[ID,aspect.ID,count,type])
+    }
+
+    List<Tuple3<String,String,Integer>> getAspects() {
+      def rows = conn.rows('''
+        select A.Name,CA.AspectCount,CA.AspectType
+          from Cards C JOIN Card_Aspects CA ON C.CardID=CA.CardID
+          JOIN Aspects A ON CA.AspectID=A.AspectID
+        WHERE C.Name=?''',name)
+      return rows.collect { row ->
+        new Tuple3<String,String,Integer>(row.Name,row.AspectType,row.AspectCount)
+      }
+    }
+
+    static Card makeCard(String name,String description) {
+      def c = new Card()
+      c.name = name
+      c.description = description
+      def keys = conn.executeInsert('''
+        INSERT INTO Cards
+          (Name,Description)
+        VALUES
+          (?,?)''',[name,description])
+      c.ID = keys[0][0]
+
+      return c
+    }
+
+    static Card getCard(String name) {
+      def row = conn.firstRow('SELECT * FROM Cards WHERE NAME=?',name)
+      return new Card(row)
     }
   }
 }
