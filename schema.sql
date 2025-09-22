@@ -121,3 +121,20 @@ CREATE TABLE IF NOT EXISTS "SoulElement_Principles" (
 	FOREIGN KEY("PrincipleID") REFERENCES "Principles"("PrincipleID"),
 	PRIMARY KEY("SoulElement_PrincipleID" AUTOINCREMENT)
 );
+CREATE TABLE IF NOT EXISTS "Recipes" (
+	"RecipeID"	INTEGER NOT NULL UNIQUE,
+	"Result_CardID"	INTEGER NOT NULL,
+	"Skill_CardID"	INTEGER NOT NULL,
+	"Base_AspectID"	INTEGER NOT NULL,
+	"Name"	TEXT NOT NULL,
+	"Description"	TEXT,
+	"Scholar_AspectID"	INTEGER,
+	"Keeper_CardID"	INTEGER,
+	"Notes"	TEXT,
+	FOREIGN KEY("Result_CardID") REFERENCES "Cards"("CardID"),
+	FOREIGN KEY("Base_AspectID") REFERENCES "Aspects"("AspectID"),
+	PRIMARY KEY("RecipeID" AUTOINCREMENT),
+	FOREIGN KEY("Keeper_CardID") REFERENCES "Cards"("CardID"),
+	FOREIGN KEY("Skill_CardID") REFERENCES "Cards"("CardID"),
+	FOREIGN KEY("Scholar_AspectID") REFERENCES "Aspects"("AspectID")
+);
