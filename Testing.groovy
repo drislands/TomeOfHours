@@ -299,5 +299,71 @@ class Testing {
     }
   }
 
-  
+  @Canonical
+  static class Recipe {
+    int ID
+    String name
+    String description
+    String notes
+    Integer skillCardID
+    Integer resultCardID
+    Integer baseAspectID
+    Integer scholarAspectID
+    Integer keeperCardID
+
+    Recipe(){}
+    Recipe(GroovyRowResult row) {
+      ID = row.RecipeID
+      name = row.Name
+      description = row.Description
+      notes = row.Notes
+      skillCardID = row.Skill_CardID
+      resultCardID = row.Result_CardID
+      baseAspectID = row.BaseAspect_AspectID
+      scholarAspectID = row.Scholar_AspectID
+      keeperCardID = row.Keeper_CardID
+    }
+
+    static Recipe makePrenticeRecipe(String name,String description,
+                                     Card result,Card skill,Principle principle) {
+      return makeRecipeInternal(name,description,result,skill,principle,null,null)
+    }
+    static Recipe makeScholarRecipe(String name,String description,
+                                    Card result,Card skill,Principle principle,
+                                    Aspect scholarAspect) {
+      return makeRecipeInternal(name,description,result,skill,principle,scholarAspectID,null)
+    }
+    static Recipe makeKeeperRecipe(String name,String description,
+                                   Card result,Card skill,Principle principle,
+                                   Card keeperCard) {
+      return makeRecipeInternal(name,description,result,skill,principle,null,keeperCard)
+    }
+    private static Recipe makeRecipeInternal(String name,String description,
+                             Card result,Card skill,Principle principle,
+                             Aspect scholarAspect,Card keeperCard) {
+      def r = new Recipe()
+      r.name = name
+      r.description = description
+      r.skillCardID = skill.ID
+      r.resultCardID = result.ID
+      r.baseAspectID = principle.aspectID
+      r.scholarAspectID = scholarAspect.ID
+      r.keeperCardID = keeperCard.ID
+      def keys = conn.executeInsert('''
+        INSERT INTO Recipes
+          (Name,Description,Result_CardID,
+           Skill_CardID,Base_AspectID,
+           Scholar_AspectID,Keeper_CardID)
+        VALUES
+          (?,?,?,
+           ?,?,
+           ?,?)''',
+           [name,description,result.ID,
+            skill.ID,principle.aspectID,
+            scholarAspect.ID,keeperCard.ID])
+      r.ID = keys[0][0]
+
+      return r
+    }
+  }
 }
