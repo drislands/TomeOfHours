@@ -105,6 +105,7 @@ class Testing {
     makePrincipleIfNew('Winter',"... [Winter is the principle of silence, of endings, and of those things that are not quite dead.]",'BDEFFF')
     makeAspectIfNew('Memory',"Something remembered might be something understood. [Memories can be used to help with crafting and to upgrade Skills. Memories disappear each dawn - except Persistent ones.]")
     makeAspectIfNew('Skill',"Anything can be learnt; everything can be forgotten.")
+    makeAspectIfNew('Thing',"The gentleman makes things his servants. The petty man is servant to things.' - Master Xun")
   }
   
   static String getInput(component=null) {
@@ -261,9 +262,42 @@ class Testing {
       return c
     }
 
+    //////////
+    // Common categories of cards.
+    static Card makeMemory(String name,String description,
+                           List<Aspect> aspects) {
+      def c = makeCard(name,description)
+      def m = Aspect.getAspect('Memory')
+
+      c.addAspect(m)
+
+      aspects.each { a ->
+        c.addAspect(a)
+      }
+
+      return c
+    }
+    //
+    static Card makeSkill(String name,String description, 
+                          Aspect primary,Aspect secondary,
+                          List<Aspect> otherAspects) {
+      def c = makeCard(name,description)
+      c.addPrimaryAspect(primary)
+      c.addSecondaryAspect(secondary)
+
+      otherAspects.each { a ->
+        c.addAspect(a)
+      }
+
+      return c
+    }
+    //////////
+
     static Card getCard(String name) {
       def row = conn.firstRow('SELECT * FROM Cards WHERE NAME=?',name)
       return new Card(row)
     }
   }
+
+  
 }
